@@ -75,6 +75,7 @@ class Predictor(BasePredictor):
         weights_tar_data = requests.get(weights_url).content
         with tarfile.open(fileobj=BytesIO(weights_tar_data), mode='r') as tar_ref:
             tar_ref.extractall("trained-model")
+        print(os.listdir("trained-model"))
 
         # weights can be a URLPath, which behaves in unexpected ways
         local_weights_cache = "./trained-model"
@@ -115,14 +116,12 @@ class Predictor(BasePredictor):
             elif name.startswith("down_blocks"):
                 block_id = int(name[len("down_blocks.")])
                 hidden_size = unet.config.block_out_channels[block_id]
-            with no_init_or_tensor():
-                module = LoRAAttnProcessor2_0(
-                    hidden_size=hidden_size,
-                    cross_attention_dim=cross_attention_dim,
-                    rank=name_rank_map[name],
-                )
-            unet_lora_attn_procs[name] = module.to(
-                "cuda", non_blocking=True)
+            module = LoRAAttnProcessor2_0(
+                hidden_size=hidden_size,
+                cross_attention_dim=cross_attention_dim,
+                rank=name_rank_map[name],
+            )
+            unet_lora_attn_procs[name] = module.to("cuda")
 
         unet.set_attn_processor(unet_lora_attn_procs)
         unet.load_state_dict(tensors, strict=False)
@@ -282,6 +281,7 @@ class Predictor(BasePredictor):
         print(f"Using seed: {seed}")
 
         self.txt2img_pipe.to("cuda")
+        self.load_trained_weights(lora_url, self.txt2img_pipe)
 
         print("Loading SDXL img2img pipeline...")
         self.img2img_pipe = StableDiffusionXLImg2ImgPipeline(
@@ -326,8 +326,6 @@ class Predictor(BasePredictor):
             variant="fp16",
         )
         self.refiner.to("cuda")
-
-        self.load_trained_weights(lora_url, self.txt2img_pipe)
 
         # OOMs can leave vae in bad state
         if self.txt2img_pipe.vae.dtype == torch.float32:
