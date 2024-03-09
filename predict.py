@@ -22,9 +22,9 @@ from diffusers import (
     StableDiffusionXLInpaintPipeline,
 )
 from diffusers.models.attention_processor import LoRAAttnProcessor2_0
-from diffusers.pipelines.stable_diffusion.safety_checker import (
-    StableDiffusionSafetyChecker,
-)
+# from diffusers.pipelines.stable_diffusion.safety_checker import (
+#     StableDiffusionSafetyChecker,
+# )
 from diffusers.utils import load_image
 from safetensors import safe_open
 from safetensors.torch import load_file
@@ -171,30 +171,30 @@ class Predictor(BasePredictor):
 
         self.weights_cache = WeightsDownloadCache()
 
-        print("Loading safety checker...")
-        if not os.path.exists(SAFETY_CACHE):
-            download_weights(SAFETY_URL, SAFETY_CACHE)
-        self.safety_checker = StableDiffusionSafetyChecker.from_pretrained(
-            SAFETY_CACHE, torch_dtype=torch.float16
-        ).to("cuda")
-        self.feature_extractor = CLIPImageProcessor.from_pretrained(
-            FEATURE_EXTRACTOR)
+        # print("Loading safety checker...")
+        # if not os.path.exists(SAFETY_CACHE):
+        #     download_weights(SAFETY_URL, SAFETY_CACHE)
+        # self.safety_checker = StableDiffusionSafetyChecker.from_pretrained(
+        #     SAFETY_CACHE, torch_dtype=torch.float16
+        # ).to("cuda")
+        # self.feature_extractor = CLIPImageProcessor.from_pretrained(
+        #     FEATURE_EXTRACTOR)
 
-        if not os.path.exists(SDXL_MODEL_CACHE):
-            download_weights(SDXL_URL, SDXL_MODEL_CACHE)
+        # if not os.path.exists(SDXL_MODEL_CACHE):
+        #     download_weights(SDXL_URL, SDXL_MODEL_CACHE)
 
-        print("Loading sdxl txt2img pipeline...")
-        self.txt2img_pipe = DiffusionPipeline.from_pretrained(
-            SDXL_MODEL_CACHE,
-            torch_dtype=torch.float16,
-            use_safetensors=True,
-            variant="fp16",
-        )
-        self.is_lora = False
-        if weights or os.path.exists("./trained-model"):
-            self.load_trained_weights(weights, self.txt2img_pipe)
+        # print("Loading sdxl txt2img pipeline...")
+        # self.txt2img_pipe = DiffusionPipeline.from_pretrained(
+        #     SDXL_MODEL_CACHE,
+        #     torch_dtype=torch.float16,
+        #     use_safetensors=True,
+        #     variant="fp16",
+        # )
+        # self.is_lora = False
+        # if weights or os.path.exists("./trained-model"):
+        #     self.load_trained_weights(weights, self.txt2img_pipe)
 
-        self.txt2img_pipe.to("cuda")
+        # self.txt2img_pipe.to("cuda")
 
         print("Loading SDXL img2img pipeline...")
         self.img2img_pipe = StableDiffusionXLImg2ImgPipeline(
@@ -250,16 +250,16 @@ class Predictor(BasePredictor):
         shutil.copyfile(path, "/tmp/image.png")
         return load_image("/tmp/image.png").convert("RGB")
 
-    def run_safety_checker(self, image):
-        safety_checker_input = self.feature_extractor(image, return_tensors="pt").to(
-            "cuda"
-        )
-        np_image = [np.array(val) for val in image]
-        image, has_nsfw_concept = self.safety_checker(
-            images=np_image,
-            clip_input=safety_checker_input.pixel_values.to(torch.float16),
-        )
-        return image, has_nsfw_concept
+    # def run_safety_checker(self, image):
+    #     safety_checker_input = self.feature_extractor(image, return_tensors="pt").to(
+    #         "cuda"
+    #     )
+    #     np_image = [np.array(val) for val in image]
+    #     image, has_nsfw_concept = self.safety_checker(
+    #         images=np_image,
+    #         clip_input=safety_checker_input.pixel_values.to(torch.float16),
+    #     )
+    #     return image, has_nsfw_concept
 
     @torch.inference_mode()
     def predict(
@@ -431,8 +431,8 @@ class Predictor(BasePredictor):
             pipe.watermark = watermark_cache
             self.refiner.watermark = watermark_cache
 
-        if not disable_safety_checker:
-            _, has_nsfw_content = self.run_safety_checker(output.images)
+        # if not disable_safety_checker:
+        #     _, has_nsfw_content = self.run_safety_checker(output.images)
 
         output_paths = []
         for i, image in enumerate(output.images):
