@@ -3,7 +3,7 @@
 
 build:
   gpu: true
-  cuda: "11.8"
+  cuda: "11.7"
   python_version: "3.9"
   system_packages:
     - "libgl1-mesa-glx"
@@ -28,6 +28,6 @@ build:
   run:
     - curl -o /usr/local/bin/pget -L "https://github.com/replicate/pget/releases/download/v0.0.3/pget" && chmod +x /usr/local/bin/pget
     - wget http://thegiflibrary.tumblr.com/post/11565547760 -O face_landmarker_v2_with_blendshapes.task -q https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
-    
+
 predict: "predict.py:Predictor"
 train: "train.py:train"

@@ -208,8 +208,8 @@ class Predictor(BasePredictor):
         )
         self.img2img_pipe.to("cuda")
         print('loading lora')
-        lora_model_ID = "artificialguybr/PixelArtRedmond"
-        self.img2img_pipe.load_lora_weights(pretrained_model_name_or_path_or_dict=lora_model_ID,
+        self.img2img_pipe.load_lora_weights("artificialguybr/PixelArtRedmond",
+                                            weight_name='PixelArtRedmond-Lite64.safetensors',
                                             adapter_name="pixel-art")
 
         print("Loading SDXL inpaint pipeline...")
