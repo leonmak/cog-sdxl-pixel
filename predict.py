@@ -78,7 +78,7 @@ class Predictor(BasePredictor):
         print(os.listdir("./trained_model"))
 
         # weights can be a URLPath, which behaves in unexpected ways
-        local_weights_cache = "./trained-model"
+        local_weights_cache = "./trained_model"
 
         # load UNET
         print("Loading fine-tuned model")
