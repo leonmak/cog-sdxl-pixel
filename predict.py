@@ -100,29 +100,29 @@ class Predictor(BasePredictor):
                 r = tv.shape[1]
                 name_rank_map[proc_name] = r
 
-            for name, attn_processor in unet.attn_processors.items():
-                cross_attention_dim = (
-                    None
-                    if name.endswith("attn1.processor")
-                    else unet.config.cross_attention_dim
-                )
-                if name.startswith("mid_block"):
-                    hidden_size = unet.config.block_out_channels[-1]
-                elif name.startswith("up_blocks"):
-                    block_id = int(name[len("up_blocks.")])
-                    hidden_size = list(reversed(unet.config.block_out_channels))[
-                        block_id
-                    ]
-                elif name.startswith("down_blocks"):
-                    block_id = int(name[len("down_blocks.")])
-                    hidden_size = unet.config.block_out_channels[block_id]
+        for name, attn_processor in unet.attn_processors.items():
+            cross_attention_dim = (
+                None
+                if name.endswith("attn1.processor")
+                else unet.config.cross_attention_dim
+            )
+            if name.startswith("mid_block"):
+                hidden_size = unet.config.block_out_channels[-1]
+            elif name.startswith("up_blocks"):
+                block_id = int(name[len("up_blocks.")])
+                hidden_size = list(reversed(unet.config.block_out_channels))[
+                    block_id
+                ]
+            elif name.startswith("down_blocks"):
+                block_id = int(name[len("down_blocks.")])
+                hidden_size = unet.config.block_out_channels[block_id]
 
-                module = LoRAAttnProcessor2_0(
-                    hidden_size=hidden_size,
-                    cross_attention_dim=cross_attention_dim,
-                    rank=name_rank_map[name],
-                )
-                unet_lora_attn_procs[name] = module.to("cuda")
+            module = LoRAAttnProcessor2_0(
+                hidden_size=hidden_size,
+                cross_attention_dim=cross_attention_dim,
+                rank=name_rank_map[name],
+            )
+            unet_lora_attn_procs[name] = module.to("cuda")
 
         unet.set_attn_processor(unet_lora_attn_procs)
         unet.load_state_dict(tensors, strict=False)
@@ -164,15 +164,6 @@ class Predictor(BasePredictor):
 
         if not os.path.exists(SDXL_MODEL_CACHE):
             download_weights(SDXL_URL, SDXL_MODEL_CACHE)
-
-        print("Loading sdxl txt2img pipeline...")
-        self.txt2img_pipe = DiffusionPipeline.from_pretrained(
-            SDXL_MODEL_CACHE,
-            torch_dtype=torch.float16,
-            use_safetensors=True,
-            variant="fp16",
-        )
-        self.is_lora = False
 
     def load_image(self, path):
         shutil.copyfile(path, "/tmp/image.png")
@@ -281,6 +272,13 @@ class Predictor(BasePredictor):
             seed = int.from_bytes(os.urandom(2), "big")
         print(f"Using seed: {seed}")
 
+        print("Loading sdxl txt2img pipeline...")
+        self.txt2img_pipe = DiffusionPipeline.from_pretrained(
+            SDXL_MODEL_CACHE,
+            torch_dtype=torch.float16,
+            use_safetensors=True
+        )
+        self.is_lora = True
         self.txt2img_pipe.to("cuda")
         self.load_trained_weights(lora_url, self.txt2img_pipe)
 
