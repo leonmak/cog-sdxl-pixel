@@ -104,7 +104,8 @@ class Predictor(BasePredictor):
 
             unet = pipe.unet
 
-            tensors = load_file(os.path.join(local_weights_cache, "lora.safetensors"))
+            tensors = load_file(os.path.join(
+                local_weights_cache, "lora.safetensors"))
 
             unet_lora_attn_procs = {}
             name_rank_map = {}
@@ -137,16 +138,19 @@ class Predictor(BasePredictor):
                         cross_attention_dim=cross_attention_dim,
                         rank=name_rank_map[name],
                     )
-                unet_lora_attn_procs[name] = module.to("cuda", non_blocking=True)
+                unet_lora_attn_procs[name] = module.to(
+                    "cuda", non_blocking=True)
 
             unet.set_attn_processor(unet_lora_attn_procs)
             unet.load_state_dict(tensors, strict=False)
 
         # load text
         handler = TokenEmbeddingsHandler(
-            [pipe.text_encoder, pipe.text_encoder_2], [pipe.tokenizer, pipe.tokenizer_2]
+            [pipe.text_encoder, pipe.text_encoder_2], [
+                pipe.tokenizer, pipe.tokenizer_2]
         )
-        handler.load_embeddings(os.path.join(local_weights_cache, "embeddings.pti"))
+        handler.load_embeddings(os.path.join(
+            local_weights_cache, "embeddings.pti"))
 
         # load params
         with open(os.path.join(local_weights_cache, "special_params.json"), "r") as f:
@@ -161,6 +165,7 @@ class Predictor(BasePredictor):
         start = time.time()
         self.tuned_model = False
         self.tuned_weights = None
+
         if str(weights) == "weights":
             weights = None
 
@@ -172,7 +177,8 @@ class Predictor(BasePredictor):
         self.safety_checker = StableDiffusionSafetyChecker.from_pretrained(
             SAFETY_CACHE, torch_dtype=torch.float16
         ).to("cuda")
-        self.feature_extractor = CLIPImageProcessor.from_pretrained(FEATURE_EXTRACTOR)
+        self.feature_extractor = CLIPImageProcessor.from_pretrained(
+            FEATURE_EXTRACTOR)
 
         if not os.path.exists(SDXL_MODEL_CACHE):
             download_weights(SDXL_URL, SDXL_MODEL_CACHE)
@@ -201,6 +207,10 @@ class Predictor(BasePredictor):
             scheduler=self.txt2img_pipe.scheduler,
         )
         self.img2img_pipe.to("cuda")
+        print('loading lora')
+        lora_model_ID = "artificialguybr/PixelArtRedmond"
+        self.img2img_pipe.load_lora_weights(pretrained_model_name_or_path_or_dict=lora_model_ID,
+                                            adapter_name="pixel-art")
 
         print("Loading SDXL inpaint pipeline...")
         self.inpaint_pipe = StableDiffusionXLInpaintPipeline(
@@ -306,7 +316,8 @@ class Predictor(BasePredictor):
         ),
         refine: str = Input(
             description="Which refine style to use",
-            choices=["no_refiner", "expert_ensemble_refiner", "base_image_refiner"],
+            choices=["no_refiner", "expert_ensemble_refiner",
+                     "base_image_refiner"],
             default="no_refiner",
         ),
         high_noise_frac: float = Input(
@@ -387,7 +398,8 @@ class Predictor(BasePredictor):
             pipe.watermark = None
             self.refiner.watermark = None
 
-        pipe.scheduler = SCHEDULERS[scheduler].from_config(pipe.scheduler.config)
+        pipe.scheduler = SCHEDULERS[scheduler].from_config(
+            pipe.scheduler.config)
         generator = torch.Generator("cuda").manual_seed(seed)
 
         common_args = {
