@@ -180,10 +180,10 @@ class Predictor(BasePredictor):
         # self.feature_extractor = CLIPImageProcessor.from_pretrained(
         #     FEATURE_EXTRACTOR)
 
-        # if not os.path.exists(SDXL_MODEL_CACHE):
-        #     download_weights(SDXL_URL, SDXL_MODEL_CACHE)
+        if not os.path.exists(SDXL_MODEL_CACHE):
+            download_weights(SDXL_URL, SDXL_MODEL_CACHE)
 
-        # print("Loading sdxl txt2img pipeline...")
+        print("Loading sdxl txt2img pipeline...")
         self.txt2img_pipe = DiffusionPipeline.from_pretrained(
             SDXL_MODEL_CACHE,
             torch_dtype=torch.float16,
@@ -208,9 +208,11 @@ class Predictor(BasePredictor):
         )
         self.img2img_pipe.to("cuda")
         print('loading lora')
-        self.img2img_pipe.load_lora_weights("artificialguybr/PixelArtRedmond",
-                                            weight_name='PixelArtRedmond-Lite64.safetensors',
-                                            adapter_name="pixel-art")
+        # self.img2img_pipe.load_lora_weights("artificialguybr/PixelArtRedmond",
+        #                                     weight_name='PixelArtRedmond-Lite64.safetensors',
+        #                                     adapter_name="pixel-art")
+        self.img2img_pipe.load_lora_weights(
+            "nerijs/pixel-art-xl", weight_name="pixel-art-xl.safetensors", adapter_name="pixel")
 
         print("Loading SDXL inpaint pipeline...")
         self.inpaint_pipe = StableDiffusionXLInpaintPipeline(
