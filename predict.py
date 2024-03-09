@@ -184,28 +184,30 @@ class Predictor(BasePredictor):
             download_weights(SDXL_URL, SDXL_MODEL_CACHE)
 
         print("Loading sdxl txt2img pipeline...")
-        self.txt2img_pipe = DiffusionPipeline.from_pretrained(
-            SDXL_MODEL_CACHE,
-            torch_dtype=torch.float16,
-            use_safetensors=True,
-            variant="fp16",
-        )
-        self.is_lora = True
-        if weights or os.path.exists("./trained-model"):
-            self.load_trained_weights(weights, self.txt2img_pipe)
+        # self.txt2img_pipe = DiffusionPipeline.from_pretrained(
+        #     SDXL_MODEL_CACHE,
+        #     torch_dtype=torch.float16,
+        #     use_safetensors=True,
+        #     variant="fp16",
+        # )
+        # self.is_lora = True
+        # if weights or os.path.exists("./trained-model"):
+        #     self.load_trained_weights(weights, self.txt2img_pipe)
 
-        self.txt2img_pipe.to("cuda")
+        # self.txt2img_pipe.to("cuda")
 
-        print("Loading SDXL img2img pipeline...")
-        self.img2img_pipe = StableDiffusionXLImg2ImgPipeline(
-            vae=self.txt2img_pipe.vae,
-            text_encoder=self.txt2img_pipe.text_encoder,
-            text_encoder_2=self.txt2img_pipe.text_encoder_2,
-            tokenizer=self.txt2img_pipe.tokenizer,
-            tokenizer_2=self.txt2img_pipe.tokenizer_2,
-            unet=self.txt2img_pipe.unet,
-            scheduler=self.txt2img_pipe.scheduler,
-        )
+        # print("Loading SDXL img2img pipeline...")
+        # self.img2img_pipe = StableDiffusionXLImg2ImgPipeline(
+        #     vae=self.txt2img_pipe.vae,
+        #     text_encoder=self.txt2img_pipe.text_encoder,
+        #     text_encoder_2=self.txt2img_pipe.text_encoder_2,
+        #     tokenizer=self.txt2img_pipe.tokenizer,
+        #     tokenizer_2=self.txt2img_pipe.tokenizer_2,
+        #     unet=self.txt2img_pipe.unet,
+        #     scheduler=self.txt2img_pipe.scheduler,
+        # )
+        self.img2img_pipe = StableDiffusionXLImg2ImgPipeline.from_pretrained("stabilityai/sdxl-turbo",
+                                                                             torch_dtype=torch.float16)
         self.img2img_pipe.to("cuda")
         print('loading lora')
         # self.img2img_pipe.load_lora_weights("artificialguybr/PixelArtRedmond",
@@ -214,37 +216,37 @@ class Predictor(BasePredictor):
         self.img2img_pipe.load_lora_weights(
             "nerijs/pixel-art-xl", weight_name="pixel-art-xl.safetensors", adapter_name="pixel")
 
-        print("Loading SDXL inpaint pipeline...")
-        self.inpaint_pipe = StableDiffusionXLInpaintPipeline(
-            vae=self.txt2img_pipe.vae,
-            text_encoder=self.txt2img_pipe.text_encoder,
-            text_encoder_2=self.txt2img_pipe.text_encoder_2,
-            tokenizer=self.txt2img_pipe.tokenizer,
-            tokenizer_2=self.txt2img_pipe.tokenizer_2,
-            unet=self.txt2img_pipe.unet,
-            scheduler=self.txt2img_pipe.scheduler,
-        )
-        self.inpaint_pipe.to("cuda")
+        # print("Loading SDXL inpaint pipeline...")
+        # self.inpaint_pipe = StableDiffusionXLInpaintPipeline(
+        #     vae=self.txt2img_pipe.vae,
+        #     text_encoder=self.txt2img_pipe.text_encoder,
+        #     text_encoder_2=self.txt2img_pipe.text_encoder_2,
+        #     tokenizer=self.txt2img_pipe.tokenizer,
+        #     tokenizer_2=self.txt2img_pipe.tokenizer_2,
+        #     unet=self.txt2img_pipe.unet,
+        #     scheduler=self.txt2img_pipe.scheduler,
+        # )
+        # self.inpaint_pipe.to("cuda")
 
-        print("Loading SDXL refiner pipeline...")
-        # FIXME(ja): should the vae/text_encoder_2 be loaded from SDXL always?
-        #            - in the case of fine-tuned SDXL should we still?
-        # FIXME(ja): if the answer to above is use VAE/Text_Encoder_2 from fine-tune
-        #            what does this imply about lora + refiner? does the refiner need to know about
+        # print("Loading SDXL refiner pipeline...")
+        # # FIXME(ja): should the vae/text_encoder_2 be loaded from SDXL always?
+        # #            - in the case of fine-tuned SDXL should we still?
+        # # FIXME(ja): if the answer to above is use VAE/Text_Encoder_2 from fine-tune
+        # #            what does this imply about lora + refiner? does the refiner need to know about
 
-        if not os.path.exists(REFINER_MODEL_CACHE):
-            download_weights(REFINER_URL, REFINER_MODEL_CACHE)
+        # if not os.path.exists(REFINER_MODEL_CACHE):
+        #     download_weights(REFINER_URL, REFINER_MODEL_CACHE)
 
-        print("Loading refiner pipeline...")
-        self.refiner = DiffusionPipeline.from_pretrained(
-            REFINER_MODEL_CACHE,
-            text_encoder_2=self.txt2img_pipe.text_encoder_2,
-            vae=self.txt2img_pipe.vae,
-            torch_dtype=torch.float16,
-            use_safetensors=True,
-            variant="fp16",
-        )
-        self.refiner.to("cuda")
+        # print("Loading refiner pipeline...")
+        # self.refiner = DiffusionPipeline.from_pretrained(
+        #     REFINER_MODEL_CACHE,
+        #     text_encoder_2=self.txt2img_pipe.text_encoder_2,
+        #     vae=self.txt2img_pipe.vae,
+        #     torch_dtype=torch.float16,
+        #     use_safetensors=True,
+        #     variant="fp16",
+        # )
+        # self.refiner.to("cuda")
         print("setup took: ", time.time() - start)
         # self.txt2img_pipe.__class__.encode_prompt = new_encode_prompt
 
