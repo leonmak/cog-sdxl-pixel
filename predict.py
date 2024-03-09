@@ -75,7 +75,7 @@ class Predictor(BasePredictor):
         weights_tar_data = requests.get(weights_url).content
         with tarfile.open(fileobj=BytesIO(weights_tar_data), mode='r') as tar_ref:
             tar_ref.extractall("trained-model")
-        print(os.listdir("trained-model"))
+        print(os.listdir("./trained-model"))
 
         # weights can be a URLPath, which behaves in unexpected ways
         local_weights_cache = "./trained-model"
