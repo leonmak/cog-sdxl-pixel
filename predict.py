@@ -184,17 +184,17 @@ class Predictor(BasePredictor):
         #     download_weights(SDXL_URL, SDXL_MODEL_CACHE)
 
         # print("Loading sdxl txt2img pipeline...")
-        # self.txt2img_pipe = DiffusionPipeline.from_pretrained(
-        #     SDXL_MODEL_CACHE,
-        #     torch_dtype=torch.float16,
-        #     use_safetensors=True,
-        #     variant="fp16",
-        # )
-        # self.is_lora = False
-        # if weights or os.path.exists("./trained-model"):
-        #     self.load_trained_weights(weights, self.txt2img_pipe)
+        self.txt2img_pipe = DiffusionPipeline.from_pretrained(
+            SDXL_MODEL_CACHE,
+            torch_dtype=torch.float16,
+            use_safetensors=True,
+            variant="fp16",
+        )
+        self.is_lora = False
+        if weights or os.path.exists("./trained-model"):
+            self.load_trained_weights(weights, self.txt2img_pipe)
 
-        # self.txt2img_pipe.to("cuda")
+        self.txt2img_pipe.to("cuda")
 
         print("Loading SDXL img2img pipeline...")
         self.img2img_pipe = StableDiffusionXLImg2ImgPipeline(
