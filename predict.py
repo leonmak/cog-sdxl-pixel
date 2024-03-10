@@ -79,7 +79,7 @@ class Predictor(BasePredictor):
         # weights can be a URLPath, which behaves in unexpected ways
         pipe.load_lora_weights(
             "pixel-art-xl.safetensors", adapter_name="pixel")
-        pipe.set_adapters(["lora", "pixel"], adapter_weights=[1.0, 1.2])
+        # pipe.set_adapters(["lora", "pixel"], adapter_weights=[1.0, 1.2])
 
         # lora_model_ID = "artificialguybr/PixelArtRedmond"
         # pipe.load_lora_weights(pretrained_model_name_or_path_or_dict=lora_model_ID,
