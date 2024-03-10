@@ -100,6 +100,8 @@ class Predictor(BasePredictor):
                 r = tv.shape[1]
                 name_rank_map[proc_name] = r
 
+        print("Keys in name_rank_map:", name_rank_map.keys())
+
         for name, attn_processor in unet.attn_processors.items():
             cross_attention_dim = (
                 None
