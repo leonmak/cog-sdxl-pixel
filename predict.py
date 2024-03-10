@@ -74,10 +74,11 @@ class Predictor(BasePredictor):
     def load_trained_weights(self, weights_url, pipe):
         FILENAME = "pixel-art-xl.safetensors"
         print(os.listdir('.'))
-        print(os.path.exists(os.path.join([os.curdir, FILENAME])))
-        weights_tar_data = requests.get(weights_url).content
-        with tarfile.open(fileobj=BytesIO(weights_tar_data), mode='r') as tar_ref:
-            tar_ref.extractall()
+        has_file = os.path.exists(os.path.join(os.curdir, FILENAME))
+        if not has_file:
+            weights_tar_data = requests.get(weights_url).content
+            with tarfile.open(fileobj=BytesIO(weights_tar_data), mode='r') as tar_ref:
+                tar_ref.extractall()
 
         # weights can be a URLPath, which behaves in unexpected ways
         pipe.load_lora_weights(FILENAME, adapter_name="pixel")
