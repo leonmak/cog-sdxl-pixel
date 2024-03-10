@@ -287,7 +287,6 @@ class Predictor(BasePredictor):
         )
         self.is_lora = True
         self.txt2img_pipe.to("cuda")
-        self.load_trained_weights(lora_url, self.txt2img_pipe)
 
         print("Loading SDXL img2img pipeline...")
         self.img2img_pipe = StableDiffusionXLImg2ImgPipeline(
@@ -300,6 +299,7 @@ class Predictor(BasePredictor):
             scheduler=self.txt2img_pipe.scheduler,
         )
         self.img2img_pipe.to("cuda")
+        self.load_trained_weights(lora_url, self.img2img_pipe)
 
         print("Loading SDXL inpaint pipeline...")
         self.inpaint_pipe = StableDiffusionXLInpaintPipeline(
