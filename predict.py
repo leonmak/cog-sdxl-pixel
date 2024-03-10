@@ -73,7 +73,9 @@ def download_weights(url, dest):
 class Predictor(BasePredictor):
     def load_trained_weights(self, weights_url, pipe):
         FILENAME = "pixel-art-xl.safetensors"
-        print(os.listdir('.'), os.path.exists(os.path.join([os.curdir, FILENAME]))
+        print(os.listdir('.'),
+              os.path.exists(os.path.join([os.curdir, FILENAME]))
+              )
         weights_tar_data = requests.get(weights_url).content
         with tarfile.open(fileobj=BytesIO(weights_tar_data), mode='r') as tar_ref:
             tar_ref.extractall()
