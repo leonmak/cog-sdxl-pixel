@@ -79,63 +79,65 @@ class Predictor(BasePredictor):
 
         # weights can be a URLPath, which behaves in unexpected ways
         local_weights_cache = "./trained_model"
+        lora_model_ID = "artificialguybr/PixelArtRedmond"
+        pipe.load_lora_weights(pretrained_model_name_or_path_or_dict=lora_model_ID,
+                               adapter_name="pixel-art")
+        # # load UNET
+        # print("Loading fine-tuned model")
+        # self.is_lora = False
 
-        # load UNET
-        print("Loading fine-tuned model")
-        self.is_lora = False
+        # print("Loading Unet LoRA")
 
-        print("Loading Unet LoRA")
+        # unet = pipe.unet
 
-        unet = pipe.unet
+        # tensors = load_file(os.path.join(
+        #     local_weights_cache, "lora.safetensors"))
 
-        tensors = load_file(os.path.join(
-            local_weights_cache, "lora.safetensors"))
+        # unet_lora_attn_procs = {}
+        # name_rank_map = {}
+        # for tk, tv in tensors.items():
+        #     # up is N, d
+        #     if tk.endswith("up.weight"):
+        #         proc_name = ".".join(tk.split(".")[:-3])
+        #         r = tv.shape[1]
+        #         name_rank_map[proc_name] = r
 
-        unet_lora_attn_procs = {}
-        name_rank_map = {}
-        for tk, tv in tensors.items():
-            # up is N, d
-            if tk.endswith("up.weight"):
-                proc_name = ".".join(tk.split(".")[:-3])
-                r = tv.shape[1]
-                name_rank_map[proc_name] = r
+        # print("Keys in name_rank_map:", name_rank_map.keys())
 
-        print("Keys in name_rank_map:", name_rank_map.keys())
+        # for name, attn_processor in unet.attn_processors.items():
+        #     cross_attention_dim = (
+        #         None
+        #         if name.endswith("attn1.processor")
+        #         else unet.config.cross_attention_dim
+        #     )
+        #     if name.startswith("mid_block"):
+        #         hidden_size = unet.config.block_out_channels[-1]
+        #     elif name.startswith("up_blocks"):
+        #         block_id = int(name[len("up_blocks.")])
+        #         hidden_size = list(reversed(unet.config.block_out_channels))[
+        #             block_id
+        #         ]
+        #     elif name.startswith("down_blocks"):
+        #         block_id = int(name[len("down_blocks.")])
+        #         hidden_size = unet.config.block_out_channels[block_id]
 
-        for name, attn_processor in unet.attn_processors.items():
-            cross_attention_dim = (
-                None
-                if name.endswith("attn1.processor")
-                else unet.config.cross_attention_dim
-            )
-            if name.startswith("mid_block"):
-                hidden_size = unet.config.block_out_channels[-1]
-            elif name.startswith("up_blocks"):
-                block_id = int(name[len("up_blocks.")])
-                hidden_size = list(reversed(unet.config.block_out_channels))[
-                    block_id
-                ]
-            elif name.startswith("down_blocks"):
-                block_id = int(name[len("down_blocks.")])
-                hidden_size = unet.config.block_out_channels[block_id]
+        #     module = LoRAAttnProcessor2_0(
+        #         hidden_size=hidden_size,
+        #         cross_attention_dim=cross_attention_dim,
+        #         rank=name_rank_map[name],
+        #     )
+        #     unet_lora_attn_procs[name] = module.to("cuda")
 
-            module = LoRAAttnProcessor2_0(
-                hidden_size=hidden_size,
-                cross_attention_dim=cross_attention_dim,
-                rank=name_rank_map[name],
-            )
-            unet_lora_attn_procs[name] = module.to("cuda")
+        # unet.set_attn_processor(unet_lora_attn_procs)
+        # unet.load_state_dict(tensors, strict=False)
 
-        unet.set_attn_processor(unet_lora_attn_procs)
-        unet.load_state_dict(tensors, strict=False)
-
-        # load text
-        handler = TokenEmbeddingsHandler(
-            [pipe.text_encoder, pipe.text_encoder_2], [
-                pipe.tokenizer, pipe.tokenizer_2]
-        )
-        handler.load_embeddings(os.path.join(
-            local_weights_cache, "embeddings.pti"))
+        # # load text
+        # handler = TokenEmbeddingsHandler(
+        #     [pipe.text_encoder, pipe.text_encoder_2], [
+        #         pipe.tokenizer, pipe.tokenizer_2]
+        # )
+        # handler.load_embeddings(os.path.join(
+        #     local_weights_cache, "embeddings.pti"))
 
         # load params
         with open(os.path.join(local_weights_cache, "special_params.json"), "r") as f:
