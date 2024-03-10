@@ -147,7 +147,7 @@ class Predictor(BasePredictor):
         #     params = json.load(f)
         # self.token_map = params
 
-        self.tuned_model = True
+        # self.tuned_model = True
 
     def setup(self, weights: Optional[Path] = None):
         """Load the model into memory to make running multiple predictions efficient"""
