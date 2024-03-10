@@ -78,10 +78,13 @@ class Predictor(BasePredictor):
         print(os.listdir("./trained_model"))
 
         # weights can be a URLPath, which behaves in unexpected ways
-        local_weights_cache = "./trained_model"
-        lora_model_ID = "artificialguybr/PixelArtRedmond"
-        pipe.load_lora_weights(pretrained_model_name_or_path_or_dict=lora_model_ID,
-                               adapter_name="pixel-art")
+        pipe.load_lora_weights(
+            "pixel-art-xl.safetensors", adapter_name="pixel")
+        pipe.set_adapters(["lora", "pixel"], adapter_weights=[1.0, 1.2])
+
+        # lora_model_ID = "artificialguybr/PixelArtRedmond"
+        # pipe.load_lora_weights(pretrained_model_name_or_path_or_dict=lora_model_ID,
+        #                        adapter_name="pixel-art")
         # # load UNET
         # print("Loading fine-tuned model")
         # self.is_lora = False
@@ -189,6 +192,7 @@ class Predictor(BasePredictor):
         self,
         lora_url: str = Input(
             description="Load Lora model",
+            default="https://37ncosa-a12nev.s3.amazonaws.com/pixelartt.tar.gz"
         ),
         prompt: str = Input(
             description="Input prompt",
