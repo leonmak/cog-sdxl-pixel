@@ -298,7 +298,6 @@ class Predictor(BasePredictor):
             tokenizer_2=self.txt2img_pipe.tokenizer_2,
             unet=self.txt2img_pipe.unet,
             scheduler=self.txt2img_pipe.scheduler,
-            use_safetensors=True,
         )
         self.img2img_pipe.to("cuda")
 
@@ -311,7 +310,6 @@ class Predictor(BasePredictor):
             tokenizer_2=self.txt2img_pipe.tokenizer_2,
             unet=self.txt2img_pipe.unet,
             scheduler=self.txt2img_pipe.scheduler,
-            use_safetensors=True,
         )
         self.inpaint_pipe.to("cuda")
 
