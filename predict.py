@@ -374,7 +374,7 @@ class Predictor(BasePredictor):
 
         for path in output_paths:
             downscaled = downscale(Image.open(path))
-            downscaled.save(output_path)
+            downscaled.save(path)
 
         if len(output_paths) == 0:
             raise Exception(
