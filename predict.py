@@ -369,12 +369,12 @@ class Predictor(BasePredictor):
                     print(f"NSFW content detected in image {i}")
                     continue
             output_path = f"/tmp/out-{i}.png"
-            output_paths.append(Path(output_path))
             image.save(output_path)
-
-        for path in output_paths:
-            downscaled = downscale(Image.open(path))
-            downscaled.save(path)
+            downscaled = downscale(Image.open(output_path))
+            down_path = f'{i}{output_path}'
+            downscaled.save(down_path)
+            output_paths.append(Path(output_path))
+            output_paths.append(Path(down_path))
 
         if len(output_paths) == 0:
             raise Exception(
