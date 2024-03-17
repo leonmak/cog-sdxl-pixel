@@ -6,6 +6,7 @@ import subprocess
 import time
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from weights import WeightsDownloadCache
+from urllib.parse import urlparse
 
 import numpy as np
 import torch
@@ -34,6 +35,7 @@ from io import BytesIO
 import tarfile
 
 from dataset_and_utils import TokenEmbeddingsHandler
+from pixeldetector import downscale
 
 SDXL_MODEL_CACHE = "./sdxl-cache"
 REFINER_MODEL_CACHE = "./refiner-cache"
@@ -70,84 +72,28 @@ def download_weights(url, dest):
     print("downloading took: ", time.time() - start)
 
 
+def get_filename_from_url(url):
+    parsed_url = urlparse(url)
+    path = parsed_url.path
+    filename = os.path.basename(path)
+    return filename.split('.tar.gz')[0]
+
+
+FILENAME = "pixel-art-xl.safetensors"
+
+
 class Predictor(BasePredictor):
-    def load_trained_weights(self, weights_url, pipe):
-        FILENAME = "pixel-art-xl.safetensors"
-        if not os.path.exists("./"+FILENAME):
+    def load_trained_weights(self, weights_url, pipe, fn):
+        og_dirname = get_filename_from_url(weights_url)
+        file_path = og_dirname + "/" + fn
+        # TODO: allow different model (maybe too large)
+        if not os.path.exists(file_path):
             weights_tar_data = requests.get(weights_url).content
             with tarfile.open(fileobj=BytesIO(weights_tar_data), mode='r') as tar_ref:
-                tar_ref.extractall()
+                os.makedirs(og_dirname, exist_ok=True)
+                tar_ref.extractall(og_dirname)
 
-        # weights can be a URLPath, which behaves in unexpected ways
-        pipe.load_lora_weights(FILENAME, adapter_name="pixel")
-        # pipe.set_adapters(["lora", "pixel"], adapter_weights=[1.0, 1.2])
-
-        # lora_model_ID = "artificialguybr/PixelArtRedmond"
-        # pipe.load_lora_weights(pretrained_model_name_or_path_or_dict=lora_model_ID,
-        #                        adapter_name="pixel-art")
-        # # load UNET
-        # print("Loading fine-tuned model")
-        # self.is_lora = False
-
-        # print("Loading Unet LoRA")
-
-        # unet = pipe.unet
-
-        # tensors = load_file(os.path.join(
-        #     local_weights_cache, "lora.safetensors"))
-
-        # unet_lora_attn_procs = {}
-        # name_rank_map = {}
-        # for tk, tv in tensors.items():
-        #     # up is N, d
-        #     if tk.endswith("up.weight"):
-        #         proc_name = ".".join(tk.split(".")[:-3])
-        #         r = tv.shape[1]
-        #         name_rank_map[proc_name] = r
-
-        # print("Keys in name_rank_map:", name_rank_map.keys())
-
-        # for name, attn_processor in unet.attn_processors.items():
-        #     cross_attention_dim = (
-        #         None
-        #         if name.endswith("attn1.processor")
-        #         else unet.config.cross_attention_dim
-        #     )
-        #     if name.startswith("mid_block"):
-        #         hidden_size = unet.config.block_out_channels[-1]
-        #     elif name.startswith("up_blocks"):
-        #         block_id = int(name[len("up_blocks.")])
-        #         hidden_size = list(reversed(unet.config.block_out_channels))[
-        #             block_id
-        #         ]
-        #     elif name.startswith("down_blocks"):
-        #         block_id = int(name[len("down_blocks.")])
-        #         hidden_size = unet.config.block_out_channels[block_id]
-
-        #     module = LoRAAttnProcessor2_0(
-        #         hidden_size=hidden_size,
-        #         cross_attention_dim=cross_attention_dim,
-        #         rank=name_rank_map[name],
-        #     )
-        #     unet_lora_attn_procs[name] = module.to("cuda")
-
-        # unet.set_attn_processor(unet_lora_attn_procs)
-        # unet.load_state_dict(tensors, strict=False)
-
-        # # load text
-        # handler = TokenEmbeddingsHandler(
-        #     [pipe.text_encoder, pipe.text_encoder_2], [
-        #         pipe.tokenizer, pipe.tokenizer_2]
-        # )
-        # handler.load_embeddings(os.path.join(
-        #     local_weights_cache, "embeddings.pti"))
-
-        # load params
-        # with open(os.path.join(local_weights_cache, "special_params.json"), "r") as f:
-        #     params = json.load(f)
-        # self.token_map = params
-
-        # self.tuned_model = True
+        pipe.load_lora_weights(file_path, adapter_name="pixel")
 
     def setup(self, weights: Optional[Path] = None):
         """Load the model into memory to make running multiple predictions efficient"""
@@ -193,6 +139,10 @@ class Predictor(BasePredictor):
         lora_url: str = Input(
             description="Load Lora model",
             default="https://37ncosa-a12nev.s3.amazonaws.com/pixelartt.tar.gz"
+        ),
+        lora_fn: str = Input(
+            description="Lora filename",
+            default=FILENAME
         ),
         prompt: str = Input(
             description="Input prompt",
@@ -418,7 +368,8 @@ class Predictor(BasePredictor):
                     print(f"NSFW content detected in image {i}")
                     continue
             output_path = f"/tmp/out-{i}.png"
-            image.save(output_path)
+            downscaled = downscale(image)
+            downscaled.save(output_path)
             output_paths.append(Path(output_path))
 
         if len(output_paths) == 0:
