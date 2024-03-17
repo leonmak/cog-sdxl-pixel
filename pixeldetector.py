@@ -102,7 +102,7 @@ def downscale(image, palette=False):
     downscale = pixel_detect(image.convert('RGB'))
     output = downscale
     if palette:
-        best_k = determine_best_k(downscale, 128)
+        best_k = determine_best_k(downscale, 256)
         output = downscale.quantize(
             colors=best_k, method=1, kmeans=best_k, dither=0).convert('RGB')
     return output

@@ -33,6 +33,7 @@ from transformers import CLIPImageProcessor
 import requests
 from io import BytesIO
 import tarfile
+from PIL import Image
 
 from dataset_and_utils import TokenEmbeddingsHandler
 from pixeldetector import downscale
@@ -368,9 +369,12 @@ class Predictor(BasePredictor):
                     print(f"NSFW content detected in image {i}")
                     continue
             output_path = f"/tmp/out-{i}.png"
-            downscaled = downscale(image)
-            downscaled.save(output_path)
             output_paths.append(Path(output_path))
+            image.save(output_path)
+
+        for path in output_paths:
+            downscaled = downscale(Image.open(path))
+            downscaled.save(output_path)
 
         if len(output_paths) == 0:
             raise Exception(
