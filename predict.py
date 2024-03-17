@@ -36,7 +36,6 @@ import tarfile
 from PIL import Image
 
 from dataset_and_utils import TokenEmbeddingsHandler
-from pixeldetector import downscale
 
 SDXL_MODEL_CACHE = "./sdxl-cache"
 REFINER_MODEL_CACHE = "./refiner-cache"
@@ -370,11 +369,7 @@ class Predictor(BasePredictor):
                     continue
             output_path = f"/tmp/out-{i}.png"
             image.save(output_path)
-            downscaled = downscale(Image.open(output_path))
-            down_path = f"/tmp/{i}out-{i}.png"
-            downscaled.save(down_path)
             output_paths.append(Path(output_path))
-            output_paths.append(Path(down_path))
 
         if len(output_paths) == 0:
             raise Exception(
