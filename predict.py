@@ -371,7 +371,7 @@ class Predictor(BasePredictor):
             output_path = f"/tmp/out-{i}.png"
             image.save(output_path)
             downscaled = downscale(Image.open(output_path))
-            down_path = f'{i}{output_path}'
+            down_path = f"/tmp/{i}out-{i}.png"
             downscaled.save(down_path)
             output_paths.append(Path(output_path))
             output_paths.append(Path(down_path))
