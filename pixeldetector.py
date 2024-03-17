@@ -38,9 +38,6 @@ def kCentroid(image: Image, width: int, height: int, centroids: int):
 
 
 def pixel_detect(image: Image):
-    # Thanks to https://github.com/paultron for optimizing my garbage code
-    # I swapped the axis so they accurately reflect the horizontal and vertical scaling factor for images with uneven ratios
-
     # Convert the image to a NumPy array
     npim = np.array(image)[..., :3]
 
@@ -61,7 +58,9 @@ def pixel_detect(image: Image):
     vspacing = np.diff(vpeaks)
 
     # Resize input image using kCentroid with the calculated horizontal and vertical factors
-    return kCentroid(image, round(image.width/np.median(hspacing)), round(image.height/np.median(vspacing)), 2), np.median(hspacing), np.median(vspacing)
+    return kCentroid(image,
+                     round(image.width/np.median(hspacing)),
+                     round(image.height/np.median(vspacing)), 2)
 
 
 def determine_best_k(image: Image, max_k: int):
@@ -100,16 +99,24 @@ def determine_best_k(image: Image, max_k: int):
 
 
 def downscale(image, palette=False):
-    # Find 1:1 pixel scale
-    downscale, hf, vf = pixel_detect(image)
+    downscale = pixel_detect(image.convert('RGB'))
     output = downscale
-
     if palette:
-        # Start timer
-
-        # Reduce color palette using elbow method
         best_k = determine_best_k(downscale, 128)
         output = downscale.quantize(
             colors=best_k, method=1, kmeans=best_k, dither=0).convert('RGB')
-
     return output
+
+
+if __name__ == '__main__':
+    ap = argparse.ArgumentParser()
+    ap.add_argument("-i", "--input", required=True, help="Path to input image")
+    ap.add_argument("-o", "--output", required=False,
+                    default="output.png", help="Path to save output image")
+    ap.add_argument("-m", "--max", required=False, type=int,
+                    default=128, help="Max colors for computation, more = slower")
+    ap.add_argument("-p", "--palette", required=False, action="store_true",
+                    help="Automatically reduce the image to predicted color palette")
+    args = vars(ap.parse_args())
+    a = downscale(Image.open(args['input']))
+    a.save(args['output'])
